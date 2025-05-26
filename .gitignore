@@ -1,0 +1,99 @@
+# ICARUS Project Gitignore
+
+# Security-sensitive files
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.truststore
+secrets/
+keys/
+
+# Build artifacts
+target/
+build/
+dist/
+*.so
+*.dll
+*.dylib
+*.wasm
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+
+# Rust
+/target/
+Cargo.lock
+**/*.rs.bk
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Docker
+.dockerignore
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+*.cover
+.coverage
+.hypothesis/
+
+# Documentation
+docs/_build/
+*.pdf
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+
+# Core dumps
+core
+core.*
+*.core
+
+# Security scanning
+.scannerwork/
+security-reports/
