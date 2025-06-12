@@ -1,0 +1,18 @@
+# src/core/Cargo.toml
+# Fichier manifeste pour le projet Rust (backend).
+
+[package]
+name = "icare"
+version = "0.1.0"
+edition = "2021"
+
+# Voir plus de clés et leurs définitions sur https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# J'ai ajouté des dépendances communes pour un service web Rust.
+# Vous devrez peut-être ajuster ces versions ou ajouter d'autres dépendances
+# en fonction des besoins réels de votre projet.
+tokio = { version = "1", features = ["full"] }
+rocket = "0.5.0-rc.1" # Un framework web populaire pour Rust
+serde = { version = "1.0", features = ["derive"] } # Pour la sérialisation/désérialisation
+serde_json = "1.0" # Support de JSON pour Serde 
