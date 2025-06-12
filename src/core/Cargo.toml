@@ -6,6 +6,10 @@ name = "icare"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "icare"
+path = "src/main.rs"
+
 # Voir plus de clés et leurs définitions sur https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
