@@ -1,61 +1,31 @@
-version: '3.9'
+version: '3.8'
 
 services:
-  # ICARUS Core Engine
-  icarus-core:
+  # Backend Rust Service
+  icare-core:
     build:
-      context: ./src/core
-      dockerfile: Dockerfile
-    container_name: icarus-core
-    restart: always
-    networks:
-      - icarus-net
+      context: .
+      dockerfile: ./src/core/Dockerfile
+    container_name: icare-core-api
+    ports:
+      - "8080:8080"
     volumes:
-      - icarus-data:/data
-      - /dev/shm:/dev/shm
-    security_opt:
-      - no-new-privileges:true
-      - seccomp:unconfined
-    deploy:
-      resources:
-        limits:
-          cpus: '8'
-          memory: 16G
-        reservations:
-          cpus: '4'
-          memory: 8G
-
-  # AEGIS Orchestrator
-  aegis:
-    build:
-      context: ./src/aegis
-      dockerfile: Dockerfile
-    container_name: aegis-orchestrator
-    depends_on:
-      - icarus-core
-    networks:
-      - icarus-net
+      - ./src/core:/usr/src/app/src/core
     environment:
-      - AEGIS_MODE=autonomous
-      - THREAT_LEVEL=maximum
-    deploy:
-      replicas: 3
-      restart_policy:
-        condition: any
-        delay: 5s
+      - RUST_LOG=info
+    restart: unless-stopped
 
-  # NeuralTrap Honeypot
-  neuraltrap:
+  # Frontend React Service
+  icare-ui:
     build:
-      context: ./src/deception
-      dockerfile: Dockerfile
-    container_name: neuraltrap
-    networks:
-      - icarus-net
-      - honeypot-net
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
+      context: .
+      dockerfile: ./src/ui/Dockerfile
+    container_name: icare-ui-web
+    ports:
+      - "3000:80"
+    depends_on:
+      - icare-core
+    restart: unless-stopped
 
   # Time-series Database
   timescale:
@@ -71,67 +41,12 @@ services:
     secrets:
       - db_password
 
-  # Graph Database
-  neo4j:
-    image: neo4j:5-enterprise
-    container_name: icarus-neo4j
-    environment:
-      - NEO4J_AUTH=none
-      - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
-      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
-    volumes:
-      - neo4j-data:/data
-    networks:
-      - icarus-net
-
-  # Message Queue
-  pulsar:
-    image: apachepulsar/pulsar:latest
-    container_name: icarus-pulsar
-    command: bin/pulsar standalone
-    volumes:
-      - pulsar-data:/pulsar/data
-    networks:
-      - icarus-net
-
-  # Dashboard UI
-  dashboard:
-    build:
-      context: ./src/dashboard
-      dockerfile: Dockerfile
-    container_name: icarus-dashboard
-    ports:
-      - "8443:443"
-    networks:
-      - icarus-net
-    environment:
-      - NODE_ENV=production
-      - REACT_APP_API_URL=https://icarus-core:8080
-
 networks:
   icarus-net:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.30.0.0/16
-    driver_opts:
-      com.docker.network.bridge.enable_icc: "false"
-  
-  honeypot-net:
-    driver: bridge
-    internal: true
 
 volumes:
-  icarus-data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /opt/icarus/data
-  
   timescale-data:
-  neo4j-data:
-  pulsar-data:
 
 secrets:
   db_password:
