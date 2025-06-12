@@ -1,0 +1,17 @@
+# .dockerignore
+# Ce fichier spécifie les fichiers et répertoires à ignorer
+# lors de la construction des images Docker.
+
+# Ignorer les dépendances Node
+src/ui/node_modules
+src/ui/build
+npm-debug.log
+
+# Ignorer les artéfacts de build Rust
+src/core/target
+**/Cargo.lock
+
+# Ignorer les répertoires Git et autres
+.git
+.gitignore
+.idea 
