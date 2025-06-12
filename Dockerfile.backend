@@ -1,38 +1,52 @@
 # Dockerfile.backend
 # Ce Dockerfile est responsable de la construction du service backend Rust (Icare).
 
-# --- Étape 1: Builder ---
-# Utilise l'image Rust officielle pour compiler l'application.
+# === Étape 1: Construire l'application ===
+# Nous utilisons l'image officielle de Rust comme environnement de build.
+# L'utilisation d'une version spécifique garantit la reproductibilité.
 FROM rust:1.78 as builder
 
-# Crée un répertoire de travail
-WORKDIR /usr/src/icare_backend
+# Définir le répertoire de travail dans le conteneur.
+WORKDIR /app
 
-# Copie le Cargo.toml et Cargo.lock pour mettre en cache les dépendances
-COPY src/core/Cargo.toml ./Cargo.toml
-# Note : Cargo.lock n'existe pas encore, il sera créé.
+# Copier les fichiers de manifeste.
+COPY Cargo.toml Cargo.lock ./
 
-# Crée un projet "dummy" pour installer les dépendances avant de copier tout le code source.
-# Cela tire parti de la mise en cache des couches Docker.
+# Créer un faux src/main.rs pour ne construire que les dépendances.
+# C'est une optimisation du cache. Si seul le code source change,
+# nous n'avons pas besoin de reconstruire toutes les dépendances.
 RUN mkdir src && echo "fn main() {}" > src/main.rs
 RUN cargo build --release
 RUN rm -rf src
 
-# Copie tout le code source du backend
-COPY src/core/ ./src/
+# Maintenant, copier le code source réel et les répertoires des modules.
+# La structure des fichiers est inhabituelle, avec des modules en dehors du répertoire 'src'.
+COPY ./src ./src
+COPY ./aegis ./aegis
+COPY ./crypto ./crypto
+COPY ./dashboard ./dashboard
+COPY ./neural_net ./neural_net
+COPY ./neurofirewall ./neurofirewall
+COPY ./warpshield ./warpshield
 
-# Construit l'application en mode release pour la production.
-RUN cargo build --release
+# Construire l'application pour la production.
+# 'touch' met à jour la date de modification pour s'assurer que Cargo recompile le binaire principal.
+RUN touch src/main.rs && cargo build --release
 
-# --- Étape 2: Runner ---
-# Utilise une image de base minimale pour une sécurité et une taille optimales.
-FROM gcr.io/distroless/cc-debian12
+# === Étape 2: Créer l'image finale et légère ===
+# Nous utilisons une image Debian slim pour une taille réduite.
+FROM debian:buster-slim
 
-# Crée un répertoire de travail
-WORKDIR /usr/local/bin/
+# Définir le répertoire de travail.
+WORKDIR /app
 
-# Copie le binaire compilé depuis l'étape de construction
-COPY --from=builder /usr/src/icare_backend/target/release/icare /usr/local/bin/
+# Copier le binaire compilé depuis l'étape de build.
+# Le nom du binaire est 'icare_core' comme défini dans Cargo.toml.
+COPY --from=builder /app/target/release/icare_core .
 
-# Commande pour démarrer l'application
-CMD ["icare"] 
+# Exposer le port sur lequel l'application écoute.
+# Cela doit correspondre au port utilisé dans votre code Rust.
+EXPOSE 8080
+
+# Définir la commande pour lancer l'application.
+CMD ["./icare_core"] 
